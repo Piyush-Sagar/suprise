@@ -1,22 +1,121 @@
-@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+@font-face {
+  font-family: "DM Sans";
+  src: url("assets/dm-sans.ttf") format("truetype");
+  font-display: swap;
+}
+* { box-sizing: border-box; }
 body {
-    font-family: 'Inter', sans-serif;
-    overflow: hidden; /* Prevent scrollbars during animation */
+  margin: 0;
+  background: #fff8f1;
+  color: #482b3b;
+  font: 1rem/1.5 "DM Sans", sans-serif;
 }
-.fancy-title {
-    font-family: 'Pacifico', cursive;
+main {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 1.5rem 1rem;
+  display: grid;
+  place-items: center;
+  text-align: center;
 }
-@keyframes shake {
-    0%, 100% { transform: translateX(0) rotate(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px) rotate(-2deg); }
-    20%, 40%, 60%, 80% { transform: translateX(5px) rotate(2deg); }
+section { width: 100%; }
+h1 {
+  margin: 0;
+  font: italic 400 clamp(2.2rem, 6.5vw, 4.5rem)/1.15 Georgia, serif;
+  letter-spacing: -.055em;
+  text-wrap: balance;
 }
-.shake-animation {
-    animation: shake 0.5s ease-in-out;
+button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #704655;
+  font: inherit;
+  cursor: pointer;
 }
-.video-container video {
-    width: 100%;
-    height: auto;
-    border-radius: 0.75rem;
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+button:focus-visible, video:focus-visible {
+  outline: 2px solid #933562;
+  outline-offset: 5px;
 }
+#gift {
+  display: inline-grid;
+  justify-items: center;
+  margin-top: .5rem;
+  border-radius: 1rem;
+}
+#scene {
+  display: block;
+  width: min(72vw, 19rem, 53svh);
+  height: auto;
+  image-rendering: pixelated;
+}
+#action, #restart {
+  padding: .6rem .4rem;
+  text-decoration: underline;
+  text-decoration-color: #bf9da7;
+  text-underline-offset: .32em;
+}
+#gift:hover span, #restart:hover { color: #9b285c; }
+#movie {
+  display: block;
+  width: min(100%, 72svh, 38rem);
+  aspect-ratio: 1;
+  margin: auto;
+  border-radius: .5rem;
+  background: #24191f;
+}
+#restart { margin-top: 1rem; min-height: 44px; }
+#video-note { margin: .75rem auto 0; }
+@media (prefers-reduced-motion: no-preference) {
+  #gift:hover .present { transform: translateY(-3px); }
+  .present { transition: transform .18s ease-out; }
+}
+
+h1 { overflow-wrap: anywhere; }
+.present { position: relative; display: block; }
+#tag {
+  position: absolute;
+  top: 59%;
+  left: 56%;
+  width: 23%;
+  aspect-ratio: 4 / 5;
+  padding: 3% 1.5% 2%;
+  background: #fffcf5;
+  box-shadow: 1px 2px 3px #43213355;
+  transform: rotate(11deg);
+}
+#tag::before {
+  content: "";
+  position: absolute;
+  top: -18%;
+  left: 39%;
+  width: 2px;
+  height: 28%;
+  background: #926340;
+  transform: rotate(-23deg);
+}
+#portrait, #thumbnail { display: block; width: 100%; height: 100%; object-fit: cover; }
+#personalize { display: block; margin: .4rem auto 0; padding: .65rem; color: #795b64; font-size: .875rem; }
+#personalize:hover, #remove-photo:hover { text-decoration: underline; }
+dialog {
+  width: min(24rem, calc(100% - 2rem));
+  max-height: 90svh;
+  padding: clamp(1.25rem, 5vw, 2rem);
+  border: 1px solid #d9c6ca;
+  border-radius: 1rem;
+  background: #fff8f1;
+  color: inherit;
+}
+dialog::backdrop { background: #38252f70; }
+dialog h2 { margin: 0 0 1.35rem; font: italic 400 2rem/1.15 Georgia, serif; }
+dialog label { display: block; margin: 1rem 0 .3rem; }
+dialog input { width: 100%; font: inherit; color: inherit; }
+input[type=text] { border: 1px solid #bca8af; border-radius: .4rem; padding: .6rem; background: #fffdf9; }
+input::file-selector-button { padding: .45rem; margin-right: .45rem; font: inherit; color: inherit; }
+#photo-preview:not([hidden]) { display: flex; align-items: center; gap: .75rem; margin-top: .75rem; }
+#thumbnail { width: 48px; height: 48px; border-radius: .25rem; }
+.hint, #photo-error { font-size: .875rem; color: #705763; }
+.actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1.25rem; }
+.actions button { min-height: 44px; padding: .6rem 1rem; }
+#save { background: #68344d; color: white; border-radius: .45rem; }
+#save:disabled { opacity: .55; }

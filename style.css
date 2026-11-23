@@ -43,11 +43,13 @@ button:focus-visible, video:focus-visible {
   margin-top: .5rem;
   border-radius: 1rem;
 }
-#scene {
+#gift-box {
   display: block;
-  width: min(72vw, 19rem, 53svh);
+  width: min(72vw, 16rem, 53svh);
   height: auto;
-  image-rendering: pixelated;
+  aspect-ratio: 1;
+  object-fit: contain;
+  mix-blend-mode: multiply;
 }
 #action, #restart {
   padding: .6rem .4rem;
@@ -73,28 +75,23 @@ button:focus-visible, video:focus-visible {
 
 h1 { overflow-wrap: anywhere; }
 .present { position: relative; display: block; }
-#tag {
-  position: absolute;
-  top: 59%;
-  left: 56%;
-  width: 23%;
-  aspect-ratio: 4 / 5;
-  padding: 3% 1.5% 2%;
-  background: #fffcf5;
-  box-shadow: 1px 2px 3px #43213355;
-  transform: rotate(11deg);
+#greeting:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .8rem 1.2rem;
+  margin: 0 auto 1.25rem;
+  max-width: 48rem;
 }
-#tag::before {
-  content: "";
-  position: absolute;
-  top: -18%;
-  left: 39%;
-  width: 2px;
-  height: 28%;
-  background: #926340;
-  transform: rotate(-23deg);
+#birthday-photo, #thumbnail { object-fit: cover; }
+#birthday-photo {
+  width: clamp(4rem, 10vw, 5.5rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
 }
-#portrait, #thumbnail { display: block; width: 100%; height: 100%; object-fit: cover; }
+#birthday-wish { font-size: clamp(2rem, 5vw, 3.5rem); max-width: 100%; }
+#greeting:not([hidden]) + video { width: min(100%, 58svh, 36rem); }
 #personalize { display: block; margin: .4rem auto 0; padding: .65rem; color: #795b64; font-size: .875rem; }
 #personalize:hover, #remove-photo:hover { text-decoration: underline; }
 dialog {
@@ -110,12 +107,18 @@ dialog::backdrop { background: #38252f70; }
 dialog h2 { margin: 0 0 1.35rem; font: italic 400 2rem/1.15 Georgia, serif; }
 dialog label { display: block; margin: 1rem 0 .3rem; }
 dialog input { width: 100%; font: inherit; color: inherit; }
-input[type=text] { border: 1px solid #bca8af; border-radius: .4rem; padding: .6rem; background: #fffdf9; }
+input[type=text], input[type=url] { border: 1px solid #bca8af; border-radius: .4rem; padding: .6rem; background: #fffdf9; }
 input::file-selector-button { padding: .45rem; margin-right: .45rem; font: inherit; color: inherit; }
 #photo-preview:not([hidden]) { display: flex; align-items: center; gap: .75rem; margin-top: .75rem; }
 #thumbnail { width: 48px; height: 48px; border-radius: .25rem; }
 .hint, #photo-error { font-size: .875rem; color: #705763; }
 .actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1.25rem; }
 .actions button { min-height: 44px; padding: .6rem 1rem; }
-#save { background: #68344d; color: white; border-radius: .45rem; }
+#save, #copy-link { background: #68344d; color: white; border-radius: .45rem; }
 #save:disabled { opacity: .55; }
+#share .actions { align-items: center; justify-content: space-between; }
+#open-gift, #done { color: #704655; text-underline-offset: .2em; }
+#done { min-height: 44px; }
+#copy-status { margin: .5rem 0 0; }
+#copy-status:empty { display: none; }
+[hidden] { display: none !important; }

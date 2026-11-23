@@ -8,7 +8,6 @@
     <title>A little birthday surprise</title>
     <link rel="icon" href="gift1.png">
     <link rel="stylesheet" href="style.css">
-    <script src="scene.js" defer></script>
     <script src="script.js" defer></script>
   </head>
   <body>
@@ -17,14 +16,17 @@
         <h1 id="quip" aria-live="polite">Try to look surprised.</h1>
         <button id="gift" type="button">
           <span class="present">
-            <canvas id="scene" width="196" height="188" aria-hidden="true"></canvas>
-            <span id="tag" hidden><img id="portrait" alt=""></span>
+            <img id="gift-box" src="gift1.png" width="256" height="256" alt="" draggable="false">
           </span>
           <span id="action">Unwrap it</span>
         </button>
         <button id="personalize" type="button" aria-haspopup="dialog">Personalize</button>
       </section>
       <section id="surprise" aria-label="Happy birthday" hidden>
+        <div id="greeting" hidden>
+          <img id="birthday-photo" alt="" hidden>
+          <h1 id="birthday-wish" tabindex="-1"></h1>
+        </div>
         <video id="movie" src="hbd.mp4" playsinline loop controls preload="none"
           aria-label="Your birthday video"></video>
         <p id="video-note" role="status" hidden></p>
@@ -35,20 +37,31 @@
       <form id="gift-form">
         <h2 id="editor-title">Make it personal.</h2>
         <label for="recipient">Birthday person's name</label>
-        <input id="recipient" type="text" maxlength="48" autocomplete="off">
-        <label for="photo">Gift tag photo</label>
+        <input id="recipient" type="text" maxlength="48" autocomplete="off" required>
+        <label for="photo">Birthday photo (optional)</label>
         <input id="photo" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif">
         <div id="photo-preview" hidden>
-          <img id="thumbnail" alt="Gift tag preview">
+          <img id="thumbnail" alt="Birthday photo preview">
           <button type="button" id="remove-photo">Remove photo</button>
         </div>
-        <p class="hint">Both are optional and saved in this browser.</p>
+        <p class="hint">The name and photo appear after the gift opens. Anyone with the link can see them.</p>
         <p id="photo-error" role="alert" hidden></p>
         <div class="actions">
           <button type="button" id="cancel">Cancel</button>
-          <button type="submit" id="save">Save</button>
+          <button type="submit" id="save">Create link</button>
         </div>
       </form>
+      <section id="share" aria-labelledby="share-title" hidden>
+        <h2 id="share-title" tabindex="-1">Your gift is ready.</h2>
+        <label for="gift-link">Send this link to the birthday person</label>
+        <input id="gift-link" type="url" readonly>
+        <div class="actions">
+          <a id="open-gift" target="_blank" rel="noopener">Preview gift</a>
+          <button type="button" id="copy-link">Copy link</button>
+        </div>
+        <p id="copy-status" role="status"></p>
+        <button type="button" id="done">Done</button>
+      </section>
     </dialog>
   </body>
 </html>

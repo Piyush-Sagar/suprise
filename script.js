@@ -4,99 +4,138 @@ const steps = [
   ["Yep. More wrapping.", "Lift the lid"],
   ["Happy now?", "Peek inside"],
 ];
-const wrapping = document.querySelector("#wrapping");
-const surprise = document.querySelector("#surprise");
-const gift = document.querySelector("#gift");
-const movie = document.querySelector("#movie");
-const note = document.querySelector("#video-note");
-const editor = document.querySelector("#editor");
-const recipient = document.querySelector("#recipient");
-const photo = document.querySelector("#photo");
-const save = document.querySelector("#save");
-const photoError = document.querySelector("#photo-error");
+const giftFrames = ["gift1.png", "gift2.png", "gift3.png", "gift4.png"];
+giftFrames.slice(1).forEach(src => { new Image().src = src; });
+
+const byId = id => document.getElementById(id);
+const gift = byId("gift");
+const movie = byId("movie");
+const editor = byId("editor");
+const form = byId("gift-form");
+const recipient = byId("recipient");
+const photo = byId("photo");
+const save = byId("save");
 const storageKey = "birthday-gift.personalization.v1";
-let personal = { name: "", photo: "" };
 let draftPhoto = "";
 let selection = 0;
 let stage = 0;
 
-try {
-  const saved = JSON.parse(localStorage.getItem(storageKey));
-  if (typeof saved?.name === "string" && typeof saved.photo === "string") {
-    personal = { name: saved.name.slice(0, 48), photo: saved.photo };
+// The fragment travels with the link. Static hosts never receive the name or photo.
+function readSharedGift() {
+  const fields = new URLSearchParams(location.hash.slice(1));
+  const name = fields.get("name")?.trim();
+  if (fields.get("gift") !== "1" || !name || name.length > 48) return null;
+  const data = fields.get("photo") || "";
+  let picture = "";
+  if (/^[wj][A-Za-z0-9_-]{1,2100}$/.test(data)) {
+    const mime = data[0] === "w" ? "image/webp" : "image/jpeg";
+    const base64 = data.slice(1).replace(/-/g, "+").replace(/_/g, "/");
+    picture = "data:" + mime + ";base64," + base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
   }
-} catch { /* The gift can also be personalized for just this visit. */ }
+  return { name, photo: picture };
+}
+
+let shared;
+function loadGift() {
+  shared = readSharedGift();
+  byId("personalize").hidden = Boolean(shared);
+  byId("greeting").hidden = !shared;
+  byId("birthday-wish").textContent = shared ? `Happy birthday, ${shared.name}!` : "";
+  const portrait = byId("birthday-photo");
+  if (shared?.photo) portrait.src = shared.photo;
+  else portrait.removeAttribute("src");
+  portrait.hidden = !shared?.photo;
+}
+loadGift();
 
 function renderGift() {
   const [quip, action] = steps[stage];
-  document.querySelector("#quip").textContent = stage === 0 && personal.name
-    ? `Try to look surprised, ${personal.name}.`
-    : quip;
-  document.querySelector("#tag").hidden = !personal.photo;
-  const portrait = document.querySelector("#portrait");
-  if (personal.photo) portrait.src = personal.photo;
-  else portrait.removeAttribute("src");
-  document.querySelector("#action").textContent = action;
-  drawGiftScene(stage);
+  byId("quip").textContent = quip;
+  byId("action").textContent = action;
+  byId("gift-box").src = giftFrames[stage];
 }
 
 gift.addEventListener("click", () => {
   if (stage === steps.length) return;
-  stage++;
-  if (stage < steps.length) {
+  if (++stage < steps.length) {
     renderGift();
     return;
   }
-  wrapping.hidden = true;
-  surprise.hidden = false;
-  movie.focus();
+  byId("wrapping").hidden = true;
+  byId("surprise").hidden = false;
+  (shared ? byId("birthday-wish") : movie).focus();
   movie.play().catch(error => {
-    if (surprise.hidden || error.name === "AbortError") return;
-    note.textContent = error.name === "NotAllowedError"
+    if (byId("surprise").hidden || error.name === "AbortError") return;
+    byId("video-note").textContent = error.name === "NotAllowedError"
       ? "Press play for your surprise."
       : "Your browser couldn't play the birthday video.";
-    note.hidden = false;
+    byId("video-note").hidden = false;
   });
 });
-movie.addEventListener("playing", () => { note.hidden = true; });
-document.querySelector("#restart").addEventListener("click", () => {
+movie.addEventListener("playing", () => { byId("video-note").hidden = true; });
+function restartGift() {
   movie.pause();
   movie.currentTime = 0;
-  surprise.hidden = true;
-  note.hidden = true;
-  wrapping.hidden = false;
+  byId("surprise").hidden = true;
+  byId("video-note").hidden = true;
+  byId("wrapping").hidden = false;
   stage = 0;
   renderGift();
   gift.focus();
+}
+byId("restart").addEventListener("click", restartGift);
+window.addEventListener("hashchange", () => {
+  if (editor.open) editor.close();
+  loadGift();
+  restartGift();
 });
 renderGift();
 
 function showDraftPhoto(value) {
   draftPhoto = value;
-  const thumbnail = document.querySelector("#thumbnail");
-  if (value) thumbnail.src = value;
-  else thumbnail.removeAttribute("src");
-  document.querySelector("#photo-preview").hidden = !value;
+  if (value) byId("thumbnail").src = value;
+  else byId("thumbnail").removeAttribute("src");
+  byId("photo-preview").hidden = !value;
 }
 
-document.querySelector("#personalize").addEventListener("click", () => {
-  recipient.value = personal.name;
+byId("personalize").addEventListener("click", () => {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(storageKey)); } catch { /* Drafts are optional. */ }
+  recipient.value = typeof saved?.name === "string" ? saved.name.slice(0, 48) : "";
+  showDraftPhoto(typeof saved?.photo === "string" && /^data:image\/(jpeg|webp);base64,/.test(saved.photo)
+    ? saved.photo : "");
   photo.value = "";
-  photoError.hidden = true;
+  recipient.setCustomValidity("");
+  byId("photo-error").hidden = true;
+  byId("share").hidden = true;
+  form.hidden = false;
   save.disabled = false;
-  showDraftPhoto(personal.photo);
+  editor.setAttribute("aria-labelledby", "editor-title");
   editor.showModal();
   recipient.focus();
 });
-
-document.querySelector("#cancel").addEventListener("click", () => editor.close());
+byId("cancel").addEventListener("click", () => editor.close());
+byId("done").addEventListener("click", () => editor.close());
 editor.addEventListener("close", () => { selection++; });
+recipient.addEventListener("input", () => recipient.setCustomValidity(""));
 
-document.querySelector("#remove-photo").addEventListener("click", () => {
+function squarePhoto(image, size) {
+  const side = Math.min(image.naturalWidth, image.naturalHeight);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = Math.min(side, size);
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#fff8f1";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, (image.naturalWidth - side) / 2, (image.naturalHeight - side) / 2,
+    side, side, 0, 0, canvas.width, canvas.height);
+  return canvas;
+}
+
+byId("remove-photo").addEventListener("click", () => {
   selection++;
   photo.value = "";
   showDraftPhoto("");
-  photoError.hidden = true;
+  byId("photo-error").hidden = true;
   save.disabled = false;
 });
 
@@ -106,40 +145,89 @@ photo.addEventListener("change", async () => {
   const request = ++selection;
   const url = URL.createObjectURL(file);
   save.disabled = true;
-  photoError.hidden = true;
+  byId("photo-error").hidden = true;
   try {
     const image = new Image();
     image.src = url;
     await image.decode();
-    if (request !== selection) return;
-    const side = Math.min(image.naturalWidth, image.naturalHeight);
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = Math.min(side, 320);
-    const context = canvas.getContext("2d");
-    context.fillStyle = "#fff8f1";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(image, (image.naturalWidth - side) / 2, (image.naturalHeight - side) / 2,
-      side, side, 0, 0, canvas.width, canvas.height);
-    showDraftPhoto(canvas.toDataURL("image/jpeg", .86));
+    if (request === selection) showDraftPhoto(squarePhoto(image, 320).toDataURL("image/jpeg", .9));
   } catch {
     if (request !== selection) return;
     photo.value = "";
-    photoError.textContent = "That photo couldn't be opened. Try a JPG or PNG.";
-    photoError.hidden = false;
+    byId("photo-error").textContent = "That photo couldn't be opened. Try a JPG or PNG.";
+    byId("photo-error").hidden = false;
   } finally {
     URL.revokeObjectURL(url);
     if (request === selection) save.disabled = false;
   }
 });
 
-document.querySelector("#gift-form").addEventListener("submit", event => {
+async function createGiftLink(name, picture) {
+  const url = new URL(location.pathname, location.href);
+  const fields = new URLSearchParams({ gift: "1", name });
+  url.hash = fields.toString();
+  if (!picture) return url.href;
+
+  const image = new Image();
+  image.src = picture;
+  await image.decode();
+  // Scale the portrait to fit in a normal, copyable message link.
+  for (const size of [160, 128, 96, 72, 48, 32, 24]) {
+    const canvas = squarePhoto(image, size);
+    for (const quality of [.78, .5, .3]) {
+      let data = canvas.toDataURL("image/webp", quality);
+      if (!data.startsWith("data:image/webp;")) data = canvas.toDataURL("image/jpeg", quality);
+      const format = data.startsWith("data:image/webp;") ? "w" : "j";
+      const encoded = data.split(",")[1].replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      fields.set("photo", format + encoded);
+      url.hash = fields.toString();
+      if (url.href.length <= 2000) return url.href;
+    }
+  }
+  throw new Error("Photo is too large for a gift link.");
+}
+
+form.addEventListener("submit", async event => {
   event.preventDefault();
   if (save.disabled) return;
-  personal = { name: recipient.value.trim(), photo: draftPhoto };
+  const name = recipient.value.trim();
+  if (!name) {
+    recipient.setCustomValidity("Enter the birthday person's name.");
+    recipient.reportValidity();
+    return;
+  }
+  const picture = draftPhoto;
+  const request = ++selection;
+  save.disabled = true;
   try {
-    localStorage.setItem(storageKey, JSON.stringify(personal));
-  } catch { /* In-memory changes still apply for this visit. */ }
-  renderGift();
-  editor.close();
-  gift.focus();
+    const link = await createGiftLink(name, picture);
+    if (request !== selection || !editor.open) return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ name, photo: picture }));
+    } catch { /* The link works even when the sender's browser cannot save a draft. */ }
+    byId("gift-link").value = link;
+    byId("open-gift").href = link;
+    byId("copy-status").textContent = "";
+    form.hidden = true;
+    byId("share").hidden = false;
+    editor.setAttribute("aria-labelledby", "share-title");
+    byId("share-title").focus();
+  } catch {
+    byId("photo-error").textContent = "Couldn't create the link with this photo. Try another image.";
+    byId("photo-error").hidden = false;
+  } finally {
+    if (request === selection) save.disabled = false;
+  }
+});
+
+byId("copy-link").addEventListener("click", async () => {
+  const field = byId("gift-link");
+  try {
+    await navigator.clipboard.writeText(field.value);
+    byId("copy-status").textContent = "Link copied.";
+  } catch {
+    field.focus();
+    field.select();
+    byId("copy-status").textContent = "Copy the selected link to send your gift.";
+  }
 });
